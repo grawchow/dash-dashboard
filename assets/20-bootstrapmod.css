@@ -1,0 +1,21 @@
+/* * {-webkit-font-smoothing: antialiased;} */
+/* @import url('https://fonts.googleapis.com/css?family=Oswald'); */
+/* font-family: "Oswald", Helvetica, Arial, sans-serif!important; */
+/* body{
+    background: navy;
+} */
+.display-5{font-size:2.0rem;font-weight:300;line-height:1.2}
+@media (max-width:576px) {
+  .border
+  {
+    border: 0px solid !important
+  }
+  .shadow-sm
+  {
+    box-shadow: 0 0 0 !important
+  }
+  .card-header{
+    font-size: 1.0rem
+  }
+
+}
