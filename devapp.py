@@ -145,17 +145,11 @@ def load_dataframe():
                     if multiple_programs.count(multiple_programs[0]) != len(multiple_programs):
                         result.loc[df_index,'program'] = 'ID'
                         result.loc[df_index,'country'] = multiple_countries[0]
-                        # print(result)
                         df_by_year_multi = df_by_year_multi.append(result.loc[df_index,:], ignore_index = True)
-                        # print("Appending ID")
                     else:
 
                         result.loc[df_index,'program'] = multiple_programs[0]
                         df_by_year_multi = df_by_year_multi.append(result.loc[df_index,:], ignore_index = True)
-                        # print("Appending multi->single")
-                        # print(entry)
-                        # print(result.loc[df_index,'program'])
-                        # print(df_index)
                 df_index = df_index + 1
 
     # Extract single program entries
@@ -165,9 +159,7 @@ def load_dataframe():
             # Grab singles
             query = "select country, volume, program from main_fake where status like %(complete)s and start_date between %(start)s and %(end)s and program like %(prog)s"
             result = read_sql_query(query, conn, params={"complete": '%COMPLETE%', "start": str(year)+'-01-01 00:00:00', "end": str(year)+'-12-31 00:00:00', "prog": program})
-            # [str(year)+'-01-01', str(year)+'-12-31', program])
             if not result.empty:
-                # result['Year'] = pd.Series([year]*result.shape[0], index = result.index)
                 result.loc[:,'Year'] = pd.Series([year]*result.shape[0], index = result.index)
                 df_by_year = df_by_year.append(result, ignore_index = True)
 
@@ -272,9 +264,7 @@ def generate_vol_num_plot(countries):
     yearnums_by_country_df = pd.DataFrame()
     total_sum = np.zeros(len(years))
 
-    # print(countries)
     for country in countries:
-        # print(country)
         df_by_year = pd.DataFrame()
         sum_index = 0
         for year in years:
@@ -317,7 +307,6 @@ def generate_vol_num_plot(countries):
             marker = dict(color = colors['Bars'][color_counter]),
             showlegend = False,
             hovertext = fix_country_names[country] + " - " + hoverNumber,
-            # hovertext = fix_country_names[country],
             hoverinfo = 'text'
             )
         figure_data.append(temp_data_1)
@@ -380,7 +369,6 @@ def generate_country_breakdown(country):
                 d_by_year = {'Year': [year], 'Number': [result.loc[:,'volume'].astype(int).sum()]}
                 df_temp_by_year = pd.DataFrame(data = d_by_year)
                 df_by_year = df_by_year.append(df_temp_by_year, ignore_index = True)
-                # total_sum.loc[total_sum['year'] == year] = total_sum.loc[total_sum['year'] == year] + df_by_year.loc[:,'Number']
                 total_sum[sum_index] = total_sum[sum_index] + result.loc[:,'volume'].astype(int).sum()
             sum_index = sum_index + 1
 
