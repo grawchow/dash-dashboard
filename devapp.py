@@ -10,7 +10,6 @@ import plotly.graph_objs as go
 import pandas as pd
 from pandas import read_sql_query
 from sqlalchemy import create_engine
-# import sqlalchemy
 import datetime
 import numpy as np
 from dash.dependencies import Input, Output
@@ -18,7 +17,6 @@ from colour import Color
 
 
 # Uncomment for production.
-
 # Create database connection
 DATABASE_URL = os.environ['DATABASE_URL']
 conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -96,7 +94,6 @@ country_options = ["BZE", "COL", "CR", "DR", "HAI", "IND", "JAM", "MEX", "NIC", 
 fix_country_codes = {'BZE': 'BLZ', 'COL': 'COL', 'CR': 'CRI', 'DR': 'DOM', 'HAI': 'HTI', 'IND': 'IND', 'JAM': 'JAM', 'MEX': 'MEX', 'NIC': 'NIC', 'PAN': 'PAN', 'PERU': 'PER', 'SPN': 'ESP', 'TANZ': 'TZA', 'CA': 'CAN', 'CUB': 'CUB', 'NA': 'NA', 'US': 'USA', 'MULTI': 'MULTI'}
 fix_country_names = {'ALL': 'All countries', 'BZE': 'Belize', 'COL': 'Colombia', 'CR': 'Costa Rica', 'DR': 'Dominican Republic', 'HAI': 'Haiti & DR', 'IND': 'India', 'JAM': 'Jamaica', 'MEX': 'Mexico', 'NIC': 'Nicaragua', 'PAN': 'Panama', 'PERU': 'Peru', 'SPN': 'Spain', 'TANZ': 'Tanzania', 'CA': 'Canada', 'CUB': 'Cuba', 'NA': 'NA', 'US': 'USA', 'MULTI': 'Multiple countries'}
 fix_program_names = {'ALL': 'All programs', 'NUR': 'Nursing','PT': 'Physical Therapy','GH': 'Global Health','ECO': 'Ecology','MD': 'Medical','ATR': 'ATR','PHARM': 'Pharmacy','WCI': 'Well Child International','SERV': 'Community Enrichment','BIOTECH': 'Biotech','DEN': 'Dentistry','EDU': 'Education','GAP': 'Gap Year','HS': 'High School','H4H': 'Hike for Humanity','INT': 'Internships','OT': 'Occupational Therapy','OPT': 'Optometry','SPCL': 'Specialized Service','PA': 'Physician Assistant','SWB': 'Sports without Borders','VET': 'Veterinary', 'ID': 'Interdisciplinary', 'NONE': 'No program'}
-# programs = ['NUR', 'PT', 'GH', 'ECO', 'MD', 'ATR', 'PHARM', 'WCI', 'SERV', 'BIOTECH']
 programs = ['ALL', 'NUR', 'PT', 'GH', 'ECO', 'MD', 'ATR', 'PHARM', 'WCI', 'SERV', 'BIOTECH', 'DEN', 'EDU', 'GAP', 'HS', 'H4H', 'INT', 'OT', 'OPT', 'SPCL', 'PA', 'SWB', 'VET', 'ID', 'NONE']
 top_programs = [10]
 # d = {'Country': None, 'Code': None, 'Number': None}
@@ -110,8 +107,6 @@ def Col(size, contents):
 
 def load_dataframe():
     yearnums_by_program_df = pd.DataFrame()
-
-    # country = 'CR'
 
     # Load multiples
     df_by_year_multi = pd.DataFrame()
@@ -163,10 +158,6 @@ def load_dataframe():
                         # print(df_index)
                 df_index = df_index + 1
 
-    # Set program to be 'ID' for all multi-program entries.
-    # for index in range(df_by_year_multi.shape[0]):
-    #     df_by_year_multi.loc[index,'program'] = 'ID'
-
     # Extract single program entries
     df_by_year = pd.DataFrame()
     for program in programs:
@@ -182,11 +173,6 @@ def load_dataframe():
 
     # Append multi-program entries to the single program entries
     df_by_year = df_by_year.append(df_by_year_multi, ignore_index = True)
-
-    # print(df_by_year)
-
-    # print(df_by_year_multi.loc[df_by_year_multi['country'] == 'HAI'])
-    # print(df_by_year_multi)
 
     # Clean up DataFrame
     for index, row in df_by_year.iterrows():
@@ -206,12 +192,6 @@ def calculate_total_volunteers():
 total_volunteers = calculate_total_volunteers()
 
 def generate_table(country_choice_single):
-    # print(country_choice_single)
-
-    # load_dataframe()
-
-    # query = "select country, program, volume, start_date from main where start_date between '2011-01-01' and '2018-12-31' and program like 'NUR'"
-    # query = "select distinct program from main"
     query = "select * from main_fake where country like 'CR'"
 
     dataframe = read_sql_query(query, conn)
@@ -226,8 +206,6 @@ def generate_table(country_choice_single):
             html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
         ]) for i in range(len(dataframe))] +
 
-        # [html.H4('Total number of volunteers: ' + dataframe.iloc[:,3].astype(int).sum().astype(str))] +
-
         [html.P('Retrieved at: ' + str(datetime.datetime.now()))]
         )
     return children
@@ -237,9 +215,6 @@ def generate_map(year):
     for country in country_options:
         query = "select volume from main_fake where status like %(complete)s and start_date between %(start)s and %(end)s and country like %(country)s"
         result = read_sql_query(query, conn, params={"complete": '%COMPLETE%', "start": str(year)+'-01-01', "end": str(year)+'-12-31', "country": '%'+country+'%'})
-        #
-        # print(result.iloc[:,0].astype(int).sum())
-        # print(result.iloc[:,0])
         d = {'Country': [country], 'Code': [country], 'Number': [result.iloc[:,0].astype(int).sum()]}
         df_temp = pd.DataFrame(data=d)
         df = df.append(df_temp, ignore_index=True)
@@ -257,7 +232,6 @@ def generate_map(year):
                 text = df['Country'],
                 colorscale = [[0,"rgb(5, 10, 172)"],[0.35,"rgb(40, 60, 190)"],[0.5,"rgb(70, 100, 245)"],\
                     [0.6,"rgb(90, 120, 245)"],[0.7,"rgb(106, 137, 247)"],[1,"rgb(220, 220, 220)"]],
-                # colorscale = [[0, "rgb(220, 220, 220)"], [1, maxcolor]],
                 autocolorscale = False,
                 reversescale = True,
                 marker = dict(
@@ -266,7 +240,6 @@ def generate_map(year):
                         width = 0.5
                     ) ),
                 colorbar = dict(
-                    # autotick = False,
                     title = 'Number of Volunteers')
               ) ],
 
@@ -286,11 +259,9 @@ def generate_map(year):
                 ),
                 lonaxis = dict(
                     range = (-120, -25)
-                    # showgrid = True
                 ),
                 lataxis = dict(
                     range = (0, 30)
-                    # showgrid = True
                 )
             )
         )
@@ -308,26 +279,15 @@ def generate_vol_num_plot(countries):
         sum_index = 0
         for year in years:
             result = df_full.loc[df_full['Year'] == year]
-            # result = result.loc[result['program'] == program]
             result = result.loc[result['country'] == country]
-            # for i in range(result.shape[0]):
-            #     if result.loc[i,'program'] == 'NUR':
-            # print(result.loc[result['program'] == 'NUR'])
-
-            # query = "select volume from main where status like %(complete)s and start_date between %(start)s and %(end)s and country like %(country)s"
-            # result = read_sql_query(query, conn, params={"complete": '%COMPLETE%', "start": str(year)+'-01-01', "end": str(year)+'-12-31', "country": '%'+country+'%'})
             d_by_year = {'Year': [year], 'Number': [result.loc[:,'volume'].astype(int).sum()]}
             df_temp_by_year = pd.DataFrame(data = d_by_year)
             df_by_year = df_by_year.append(df_temp_by_year, ignore_index = True)
             total_sum[sum_index] = total_sum[sum_index] + result.loc[:,'volume'].astype(int).sum()
             sum_index = sum_index + 1
-        # print('Printing data field by year: ')
-        # print(df_by_year)
         d_by_country = {'Country': [country], 'DataFrame': [df_by_year]}
         df_temp_by_country = pd.DataFrame(data = d_by_country)
         yearnums_by_country_df = yearnums_by_country_df.append(df_temp_by_country, ignore_index = True)
-        # print('Complicated version:')
-        # print(yearnums_by_country_df)
 
     color_counter = 0
     colors = {
@@ -370,11 +330,9 @@ def generate_vol_num_plot(countries):
         name = '',
         x = years,
         y = total_sum,
-        # line = dict(shape = 'spline', color = colors['Lines'][color_counter]),
         hovertext = '',
         hoverinfo = 'none',
         autorange = False,
-        # connectgaps = True
         text = total_sum,
         textposition = 'top center',
         textfont = dict(
@@ -389,7 +347,6 @@ def generate_vol_num_plot(countries):
         layout = dict(
             xaxis = dict(autotick = False, showgrid = False, showline = False, fixedrange = True),
             yaxis = dict(autorange = True, type = 'linear', showgrid = False, showline = False, ticks = '', showticklabels = False, fixedrange = True),
-            # barmode = '',
             showlegend = False,
             margin = dict(t = 30, l = 10, r = 10),
             barmode = 'stack',
@@ -406,15 +363,9 @@ def generate_country_breakdown(country):
     program_by_year = pd.DataFrame()
 
     total_sum = np.zeros(len(years))
-    # total_sum = {'year': years, 'total': np.zeros(len(programs))}
-    # total_sum = pd.DataFrame(data = total_sum)
-    # total_sum.loc[:,'volume'] = pd.Series(0*len(programs))
-    # yearnums_by_program_df = pd.DataFrame(data = {'Program': [], 'Country': [], 'Year': [], 'Number': []})
 
     if country == "ALL":
         country_result = df_full
-        # global total_volunteers
-        # total_volunteers = df_full['volume'].astype(int).sum()
     else:
         country_result = df_full.loc[df_full['country'] == country]
 
@@ -425,9 +376,6 @@ def generate_country_breakdown(country):
         for year in years:
             result = program_result.loc[program_result['Year'] == year]
 
-            # if program == 'NUR':
-            #     print('Program:' + program)
-            #     print(result)
             if result.loc[:,'volume'].astype(int).sum() > 0:
                 d_by_year = {'Year': [year], 'Number': [result.loc[:,'volume'].astype(int).sum()]}
                 df_temp_by_year = pd.DataFrame(data = d_by_year)
@@ -437,9 +385,6 @@ def generate_country_breakdown(country):
             sum_index = sum_index + 1
 
         if not df_by_year.empty:
-            # total_sum.loc[total_sum['program'] == program] = total_sum.loc[total_sum['program'] == program] + df_by_year.loc[:,'Number']
-            # total_sum[]
-            # total_sum[df_index] = total_sum[df_index] + df_by_year['Number'].astype('int')
             hoverNumber = df_by_year['Number'].astype('str').values
             temp_data_1 = dict(
                 type = 'scatter',
@@ -461,7 +406,6 @@ def generate_country_breakdown(country):
                 hovertext = fix_program_names[program] + " - " + hoverNumber,
                 hoverinfo = 'text',
                 autorange = False,
-                # text = total_sum,
                 textposition = 'auto'
                 )
             figure_data.append(temp_data_1)
@@ -474,11 +418,9 @@ def generate_country_breakdown(country):
         name = '',
         x = years,
         y = total_sum,
-        # line = dict(shape = 'spline', color = colors['Lines'][color_counter]),
         hovertext = '',
         hoverinfo = 'none',
         autorange = False,
-        # connectgaps = True
         text = total_sum,
         textposition = 'top center',
         textfont = dict(
@@ -491,7 +433,6 @@ def generate_country_breakdown(country):
     figure = dict(
         data = figure_data,
         layout = dict(
-            # title = sum(total_sum),
             xaxis = dict(autotick = False, showgrid = False, showline = False, fixedrange = True),
             yaxis = dict(autorange = True, type = 'linear', showgrid = False, showline = False, ticks = '', showticklabels = False, fixedrange = True),
             barmode = 'stack',
@@ -504,7 +445,6 @@ def generate_country_breakdown(country):
     return figure
 
 def generate_program_breakdown(program):
-    # print('Program:' + program)
     yearnums_by_country_df = pd.DataFrame()
     total_sum = np.zeros(len(years))
     if program == 'ALL':
@@ -574,11 +514,9 @@ def generate_program_breakdown(program):
         name = '',
         x = years,
         y = total_sum,
-        # line = dict(shape = 'spline', color = colors['Lines'][color_counter]),
         hovertext = '',
         hoverinfo = 'none',
         autorange = False,
-        # connectgaps = True
         text = total_sum,
         textposition = 'top center',
         textfont = dict(
@@ -614,13 +552,8 @@ def generate_country_percent_of_total(country, year):
         values = [country_total,total_volunteers - country_total],
         labels = [fix_country_names[country],'Other countries'],
         marker = dict(colors = ['rgba(15,32,88,0.7)', 'rgba(185,184,190,1)']),
-        # hoverinfo = 'value',
         textinfo = 'none',
-        # textfont = dict(
-        #     size = 18,
-        # ),
         hole = 0.4,
-        # cliponaxis = False
     )]
 
     if country_percent < 1:
@@ -653,28 +586,19 @@ def generate_country_percent_of_total(country, year):
 
 def generate_country_top_programs(country, year):
     local_df = df_full[df_full['country'] == country]
-    # global top_programs
     top_programs_numbers = []
     top_programs_labels = []
     for program in programs:
         program_df = local_df[local_df['program'] == program]
-        # print("Program: " + str(program))
-        # print(program_df)
         top_programs_numbers.append(program_df['volume'].astype(int).sum())
         top_programs_labels.append(fix_program_names[program])
-    # print('Programs: ')
-    # print(top_programs)
     figure_data = [dict(
         type = 'pie',
         values = top_programs_numbers,
         labels = top_programs_labels,
         marker = dict(colors = ['rgba(15,32,88,0.7)', 'rgba(5,77,99,0.7)', 'rgba(26,154,139,0.7)', 'rgba(176,95,161,0.7)', 'rgba(181,203,153,0.7)', 'rgba(255,210,218,0.7)', 'rgba	(34,34,59,0.7)', 'rgba(154,140,152,0.7)', 'rgba(201,173,167,0.7)', 'rgba(15,32,88,0.7)', 'rgba(5,77,99,0.7)', 'rgba(26,154,139,0.7)', 'rgba(176,95,161,0.7)', 'rgba(181,203,153,0.7)', 'rgba(255,210,218,0.7)', 'rgba	(34,34,59,0.7)', 'rgba(154,140,152,0.7)', 'rgba(201,173,167,0.7)', 'rgba(15,32,88,0.7)', 'rgba(5,77,99,0.7)', 'rgba(26,154,139,0.7)', 'rgba(176,95,161,0.7)', 'rgba(181,203,153,0.7)', 'rgba(255,210,218,0.7)', 'rgba	(34,34,59,0.7)', 'rgba(154,140,152,0.7)', 'rgba(201,173,167,0.7)']),
         hoverinfo = 'labels',
-        # text = top_programs_labels,
         textinfo = 'none',
-        # textfont = dict(
-        #     size = 18,
-        # ),
         hole = 0.4,
         cliponaxis = False,
     )]
@@ -687,17 +611,6 @@ def generate_country_top_programs(country, year):
             plot_bgcolor = 'rgba(0,0,0,0)',
             paper_bgcolor = 'rgba(0,0,0,0)',
             height = 200,
-            # annotations = [
-            # {
-            #     "font": {
-            #         "size": 20
-            #     },
-            #     "showarrow": False,
-            #     "text": fix_country_names[country],
-            #     "x": 0.5,
-            #     "y": 0.5
-            # },
-            # ]
         )
     )
     return figure
@@ -713,13 +626,8 @@ def generate_program_percent_of_total(program, year):
         values = [program_total,total_volunteers - program_total],
         labels = [fix_program_names[program],'Other countries'],
         marker = dict(colors = ['rgba(15,32,88,0.7)', 'rgba(185,184,190,1)']),
-        # hoverinfo = 'value',
         textinfo = 'none',
-        # textfont = dict(
-        #     size = 18,
-        # ),
         hole = 0.4,
-        # cliponaxis = False
     )]
 
     if program_percent < 1:
@@ -752,28 +660,19 @@ def generate_program_percent_of_total(program, year):
 
 def generate_program_top_countries(program, year):
     local_df = df_full[df_full['program'] == program]
-    # global top_programs
     top_countries_numbers = []
     top_countries_labels = []
     for country in country_options:
         country_df = local_df[local_df['country'] == country]
-        # print("Program: " + str(program))
-        # print(program_df)
         top_countries_numbers.append(country_df['volume'].astype(int).sum())
         top_countries_labels.append(fix_country_names[country])
-    # print('Programs: ')
-    # print(top_programs)
     figure_data = [dict(
         type = 'pie',
         values = top_countries_numbers,
         labels = top_countries_labels,
         marker = dict(colors = ['rgba(15,32,88,0.7)', 'rgba(5,77,99,0.7)', 'rgba(26,154,139,0.7)', 'rgba(176,95,161,0.7)', 'rgba(181,203,153,0.7)', 'rgba(255,210,218,0.7)', 'rgba	(34,34,59,0.7)', 'rgba(154,140,152,0.7)', 'rgba(201,173,167,0.7)', 'rgba(15,32,88,0.7)', 'rgba(5,77,99,0.7)', 'rgba(26,154,139,0.7)', 'rgba(176,95,161,0.7)', 'rgba(181,203,153,0.7)', 'rgba(255,210,218,0.7)', 'rgba	(34,34,59,0.7)', 'rgba(154,140,152,0.7)', 'rgba(201,173,167,0.7)', 'rgba(15,32,88,0.7)', 'rgba(5,77,99,0.7)', 'rgba(26,154,139,0.7)', 'rgba(176,95,161,0.7)', 'rgba(181,203,153,0.7)', 'rgba(255,210,218,0.7)', 'rgba	(34,34,59,0.7)', 'rgba(154,140,152,0.7)', 'rgba(201,173,167,0.7)']),
         hoverinfo = 'labels',
-        # text = top_programs_labels,
         textinfo = 'none',
-        # textfont = dict(
-        #     size = 18,
-        # ),
         hole = 0.4,
         cliponaxis = False,
     )]
@@ -786,17 +685,6 @@ def generate_program_top_countries(program, year):
             plot_bgcolor = 'rgba(0,0,0,0)',
             paper_bgcolor = 'rgba(0,0,0,0)',
             height = 200,
-            # annotations = [
-            # {
-            #     "font": {
-            #         "size": 20
-            #     },
-            #     "showarrow": False,
-            #     "text": fix_country_names[country],
-            #     "x": 0.5,
-            #     "y": 0.5
-            # },
-            # ]
         )
     )
     return figure
@@ -824,14 +712,9 @@ def year_choice_dropdown(dropdown_id, dropdown_options = year_choice_options):
     )
 
 app = dash.Dash('app', meta_tags = [{'name': 'viewport', 'content': 'width=device-width, initial-scale=1, maximum-scale=1'}])
-# auth = dash_auth.BasicAuth(
-#     app,
-#     VALID_USERNAME_PASSWORD_PAIRS
-# )
+
 app.config['suppress_callback_exceptions'] = True
 app.title = 'ISL Dashboard'
-# app.meta_tags = [{"name": "viewport", "content": "width=device-width, initial-scale=1, maximum-scale=1"}]
-# app.css.append_css({'external_url': 'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'})
 server = app.server
 
 def serve_layout_additional_country_details(country_choice_single, emtpy_card):
@@ -849,8 +732,6 @@ def serve_layout_additional_country_details(country_choice_single, emtpy_card):
                     ])
                 ])
                 ]
-    # if country_choice_single == 'ALL':
-    #     returned_card = html.Div()
     else:
         returned_card = [html.Div(className = 'card shadow-sm', children = [
                     html.Div(className = 'card-header', children = 'Additional country details'),
@@ -868,7 +749,6 @@ def serve_layout_additional_country_details(country_choice_single, emtpy_card):
                                         figure = generate_country_percent_of_total(country_choice_single, year_choice),
                                         config = config
                                         ),
-                                        # style={'min-width': '300px'}
                                         )),
                                 ]),
                             ]),
@@ -879,11 +759,9 @@ def serve_layout_additional_country_details(country_choice_single, emtpy_card):
                                 Row('',[
                                     Col('col-sm-12',html.Div(dcc.Graph(
                                         id = 'graph_country_top_programs',
-                                        # figure = generate_country_percent_of_total(country_choice_single),
                                         figure = generate_country_top_programs(country_choice_single, year_choice),
                                         config = config
                                         ),
-                                        # style={'min-width': '300px'}
                                         )),
                                 ]),
                             ]),
@@ -914,7 +792,6 @@ def serve_layout_additional_program_details(program_choice_single):
                                         figure = generate_program_percent_of_total(program_choice_single, year_choice),
                                         config = config
                                         ),
-                                        # style={'min-width': '300px'}
                                         )),
                                 ]),
                             ]),
@@ -925,11 +802,9 @@ def serve_layout_additional_program_details(program_choice_single):
                                 Row('',[
                                     Col('col-sm-12',html.Div(dcc.Graph(
                                         id = 'graph_program_top_programs',
-                                        # figure = generate_country_percent_of_total(country_choice_single),
                                         figure = generate_program_top_countries(program_choice_single, year_choice),
                                         config = config
                                         ),
-                                        # style={'min-width': '300px'}
                                         )),
                                 ]),
                             ]),
@@ -950,14 +825,9 @@ def serve_layout_main(country_choice_single, program_choice_single):
             # Overall numbers
             Row('',[
                 Col('col-12 mt-4', [
-                    # html.Div(className = 'shadow-sm rounded border p-1 bg-light', children = [
                     html.Div(className = 'card shadow-sm', children = [
                         html.Div(className = 'card-header', children = 'Total volunteer numbers by country'),
                         html.Div(className = 'card-body', children = [
-
-                            # Row('',[
-                            #     Col('col-md-12',html.Div(className = 'text-center mt-4', children = html.H1(className = 'display-5', children = 'Total volunteer numbers by country'))),
-                            # ]),
                             Row(' mt-3',[
                                 Col('col-sm col-md',''),
                                 Col('col-sm-8 col-md-8',html.H4(children = html.Small(className = 'text-muted', children = 'Select countries:'))),
@@ -973,9 +843,7 @@ def serve_layout_main(country_choice_single, program_choice_single):
                                 Col('col-sm col-md',''),
                                 Col('col-sm-10 col-md-12',html.Div(dcc.Graph(
                                     id = 'vol_num_plot',
-                                    # figure = generate_country_breakdown(country_choice_single),
                                     config = config,
-                                    # style = {'height': '80vh'}
                                     ),style={'min-width': '300px'})),
                                 Col('col-sm col-md','')
                             ])
@@ -988,7 +856,6 @@ def serve_layout_main(country_choice_single, program_choice_single):
             # Country details
                 Col('col-sm-12 col-md-6 p-3',[
                     html.Div(className = 'card shadow-sm', children = [
-                    # html.Div(className = 'shadow-sm rounded border p-1 bg-light', children = [
                         html.Div(className = 'card-header', children = 'Breakdown of country by programs'),
                         html.Div(className = 'card-body', children = [
                             Row(' mt-3',[
@@ -1008,9 +875,7 @@ def serve_layout_main(country_choice_single, program_choice_single):
                                 Col('col-sm col-md',''),
                                 Col('col-sm-10 col-md-12',html.Div(dcc.Graph(
                                     id = 'country_breakdown_graph',
-                                    # figure = generate_country_breakdown(country_choice_single),
                                     config = config,
-                                    # style = {'height': '80vh'}
                                     ),style={'min-width': '300px'})),
                                 Col('col-sm col-md','')
                             ])
@@ -1054,7 +919,6 @@ def serve_layout_main(country_choice_single, program_choice_single):
                 # Additional program details
                 html.Div(id = 'additional_program_details'),
             ]),
-            # html.Div(className = 'row', id = 'additional_country_details')
 
         ]),
     ])
@@ -1122,16 +986,6 @@ def update_additional_country_details(country_choice_single, program_choice):
     print(className)
     return className
 
-# @app.callback(
-#     Output('graph_country_percent_of_total', 'figure'),
-#     [Input('country_breakdown_dropdown', 'value')]
-# )
-# def update_country_percent_of_total(country_choice_single):
-#     return serve_layout_additional_country_details(country_choice_single)
-
-
-
-
 # Update program details page.
 @app.callback(
     Output('program_breakdown_title', 'children'),
@@ -1165,8 +1019,6 @@ def update_additional_program_details(program_choice_single):
     else:
         className = 'col-md-6 p-3'
     return className
-
-
 
 @app.callback(
 		Output('choropleth', 'figure'),
